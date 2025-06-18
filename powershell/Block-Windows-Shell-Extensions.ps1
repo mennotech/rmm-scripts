@@ -28,7 +28,10 @@
     2025-06-18: Initial version of the script.
 
 .LINK
-    github.com/mennotech/rmm-scripts/powershell/Block-Windows-Shell-Extensions.ps1
+    https://github.com/mennotech/rmm-scripts/blob/main/powershell/Block-Windows-Shell-Extensions.ps1
+
+.LICENSE
+    This script is released under the MIT License.
 #>
 
 [CmdletBinding()]
