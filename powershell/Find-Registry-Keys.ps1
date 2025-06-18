@@ -21,7 +21,10 @@
 .NOTES
     2025-06-18: Initial version of the script.
 .LINK
-    github.com/mennotech/rmm-scripts/powershell/Find-Registry-Key.ps1
+    https://github.com/mennotech/rmm-scripts/blob/main/powershell/Find-Registry-Keys.ps1
+
+.LICENSE
+    This script is released under the MIT License.
 #>
 
 [CmdletBinding()]
