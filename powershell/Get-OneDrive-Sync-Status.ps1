@@ -108,6 +108,7 @@ $TaskXML  = @"
     # If script form variables are used replace the command line parameters.
     if ($env:RMMOneDriveStateField -and $env:RMMOneDriveStateField -notlike "null") { $RMMOneDriveStateField = $env:RMMOneDriveStateField }
     if ($env:RMMOneDriveDetailsField -and $env:RMMOneDriveDetailsField -notlike "null") { $RMMOneDriveDetailsField = $env:RMMOneDriveDetailsField }
+    if ($env:UpdateScheduledTask -and $env:UpdateScheduledTask -eq "true") { $UpdateScheduledTask = $true } 
 
     # Make sure the ODSyncUtil module is installed
     if (-not (Test-Path -Path "$env:PROGRAMFILES\ODSyncUtil\ODSyncUtil.exe")) {
