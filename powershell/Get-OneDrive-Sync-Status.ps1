@@ -10,6 +10,7 @@
 .PARAMETER
     -RMMOneDriveStateField: Specifies the RMM field to populate with the Maximum State Value found
     -RMMOneDriveDetailsField: Specifies the RMM field to populate with the details of OneDrive sync status
+    -UpdateScheduledTask: Specifies whether to update the scheduled task with the new action. Default is "false".
    
 .OUTPUTS
     Outputs a the status of the script, if any OneDrive status is above 0 then it will also print out the Sync Details
@@ -28,10 +29,15 @@ param (
     [Parameter()]
     [String]$RMMOneDriveStateField = "",
     [Parameter()]
-    [String]$RMMOneDriveDetailsField = ""
+    [String]$RMMOneDriveDetailsField = "",
+    [Parameter()]
+    [String]$UpdateScheduledTask = "false"
 )
 
 begin {
+
+$TaskCommand = '"C:\Program Files\ODSyncUtil\run-hidden64.exe"'
+$TaskArguments = '"C:\Program Files\ODSyncUtil\ODSyncUtil.exe" -s "%APPDATA%\ODSyncStatus.json"'
 
 $TaskXML  = @"
 <?xml version="1.0" encoding="UTF-16"?>
@@ -79,8 +85,8 @@ $TaskXML  = @"
   </Settings>
   <Actions Context="Author">
     <Exec>
-      <Command>"C:\Program Files\ODSyncUtil\ODSyncUtil.exe"</Command>
-      <Arguments>-s "%APPDATA%\ODSyncStatus.json"</Arguments>
+      <Command>$TaskCommand</Command>
+      <Arguments>$TaskArguments</Arguments>
     </Exec>
   </Actions>
 </Task>
@@ -121,6 +127,24 @@ $TaskXML  = @"
         }                
     }
 
+
+    # Make sure the run-hidden64.exe module is installed
+    if (-not (Test-Path -Path "$env:PROGRAMFILES\ODSyncUtil\run-hidden64.exe")) {
+        Write-Host "run-hidden64.exe module is not installed. Installing..."
+        # Github release URL for run-hidden64.exe
+        # Note: This is a different module than ODSyncUtil, it is used to run the ODSyncUtil.exe in the background
+        $moduleUrl = "https://github.com/stax76/run-hidden/releases/download/v1.4/run-hidden64.exe"
+        $modulePath = "$env:PROGRAMFILES\ODSyncUtil\run-hidden64.exe"
+        Invoke-WebRequest -Uri $moduleUrl -OutFile $modulePath
+        
+        if (-not (Test-Path -Path "$env:PROGRAMFILES\ODSyncUtil\run-hidden64.exe")) {
+            Write-Error "Failed to install run-hidden64 module. Please check the installation path."
+            exit 1
+        } else {
+            Write-Host "run-hidden64 module downloaded and extracted successfully."
+        }                
+    }
+
 }
 process {
     $StatusDetails = ""
@@ -144,6 +168,17 @@ process {
     } else {
         $lastRunTime = ($taskExists | Get-ScheduledTaskInfo).LastRunTime
         $StatusDetails += "Scheduled Task '$taskName' already exists. Last run: $lastRunTime"
+        
+        if ($UpdateScheduledTask -eq "true") {
+            try {
+                #Updating Scheduled task
+                Write-Host "Updating scheduled task with new Action"
+                $NewAction = New-ScheduledTaskAction -Execute $TaskCommand -Argument $TaskArguments
+                $null = Set-ScheduledTask -TaskName $taskName -Action $NewAction
+            } catch {
+                Write-Error "Failed to update Scheduled Task '$taskName'. Error: $_"            
+            }          
+        }    
     }
 
 
